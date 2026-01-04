@@ -74,8 +74,10 @@ func (s *ChatServer) ChatHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
+		loc, _ := time.LoadLocation("America/Sao_Paulo")
+
 		msg.User = nomeOficial
-		msg.Time = time.Now().Format("15:04")
+		msg.Time = time.Now().In(loc).Format("15:04")
 
 		SaveHistory(msg)
 		Publish(msg)
