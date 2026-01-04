@@ -2,6 +2,7 @@ package player
 
 import (
 	"context"
+	"log"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
@@ -41,9 +42,18 @@ func (r *PlayerRepository) GetRankings(ctx context.Context) ([]Player, error) {
 }
 
 func (r *PlayerRepository) GetName(ctx context.Context, userId string) string {
-	dsnap, err := r.client.Collection("Ordem").Doc(userId).Get(ctx)
-	if err != nil {
+
+	if userId == "" || userId == "Visitante" {
+		log.Println("Busca abortada: ID inválido ou reservado")
 		return "Visitante"
 	}
-	return dsnap.Data()["usuario"].(string)
+	dsnap, err := r.client.Collection("Ordem").Doc(userId).Get(ctx)
+	if err != nil {
+		log.Printf("Erro no Firestore para o ID %s: %v", userId, err)
+		return "Visitante"
+	}
+
+	nome := dsnap.Data()["usuario"].(string)
+	log.Printf("Sucesso! Nome recuperado: %s", nome)
+	return nome
 }

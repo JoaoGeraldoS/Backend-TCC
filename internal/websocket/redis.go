@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -20,9 +21,20 @@ const (
 )
 
 func Init() {
-	Rdb = redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	redisUrl := os.Getenv("REDIS_URL")
+
+	if redisUrl == "" {
+		redisUrl = "localhost:6379"
+	}
+
+	opt, err := redis.ParseURL(redisUrl)
+	if err != nil {
+		opt = &redis.Options{
+			Addr: redisUrl,
+		}
+	}
+
+	Rdb = redis.NewClient(opt)
 
 	if err := Rdb.Ping(Ctx).Err(); err != nil {
 		log.Fatal("Erro ao conectar no Redis: ", err)

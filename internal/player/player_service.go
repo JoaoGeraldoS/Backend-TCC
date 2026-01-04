@@ -1,6 +1,10 @@
 package player
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"log"
+)
 
 type PlayerService interface {
 	GetRankings(ctx context.Context) ([]Player, error)
@@ -20,5 +24,15 @@ func (s *servicePlayer) GetRankings(ctx context.Context) ([]Player, error) {
 }
 
 func (s *servicePlayer) GetPlayerName(ctx context.Context, id string) string {
-	return s.repo.GetName(ctx, id)
+
+	player := s.repo.GetName(ctx, id)
+
+	if player != id {
+		log.Println("user nao exits")
+		return "Visitante"
+	}
+
+	fmt.Println("Esta vindo", player)
+
+	return player
 }

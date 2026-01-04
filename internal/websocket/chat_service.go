@@ -25,6 +25,12 @@ func NewChatServer(svc player.PlayerService) *ChatServer {
 	}
 }
 
+func (s *ChatServer) GetConnectedCount() int {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return len(s.clients)
+}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
@@ -80,7 +86,7 @@ func (s *ChatServer) RedisSubscriber(ctx context.Context) {
 	sub := Rdb.Subscribe(ctx, Room)
 	ch := sub.Channel()
 
-	log.Println("📢 Ouvindo mensagens do Redis no canal:", Room)
+	log.Println("Ouvindo mensagens do Redis no canal:", Room)
 
 	for pyload := range ch {
 		var msg Message
