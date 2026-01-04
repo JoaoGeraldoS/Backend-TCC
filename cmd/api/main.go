@@ -39,7 +39,7 @@ func main() {
 	mux.HandleFunc("POST /login", playerHand.Login)
 
 	server := http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + port,
 		Handler: handler,
 	}
 
