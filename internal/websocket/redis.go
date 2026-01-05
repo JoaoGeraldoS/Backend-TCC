@@ -3,6 +3,7 @@ package websocket
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -48,13 +49,20 @@ func Publish(msg Message) {
 }
 
 func SaveHistory(msg Message) {
-
 	data, _ := json.Marshal(msg)
+	now := time.Now().Unix()
+	expirationLimit := 60
 
 	pipe := Rdb.TxPipeline()
-	pipe.RPush(Ctx, HistoryKey, data)
-	pipe.LTrim(Ctx, HistoryKey, -50, -1)
-	pipe.Expire(Ctx, HistoryKey, 1*time.Minute)
+
+	pipe.ZAdd(Ctx, HistoryKey, redis.Z{
+		Score:  float64(now),
+		Member: data,
+	})
+
+	pipe.ZRemRangeByScore(Ctx, HistoryKey, "-inf", fmt.Sprintf("%d", expirationLimit))
+	pipe.ZRemRangeByRank(Ctx, HistoryKey, 0, -51)
+	pipe.Expire(Ctx, HistoryKey, 1*time.Hour)
 	pipe.Exec(Ctx)
 }
 

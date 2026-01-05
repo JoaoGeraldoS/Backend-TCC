@@ -2,13 +2,13 @@ package player
 
 import (
 	"context"
-	"fmt"
 	"log"
 )
 
 type PlayerService interface {
 	GetRankings(ctx context.Context) ([]Player, error)
 	GetPlayerName(ctx context.Context, id string) string
+	FilterName(ctx context.Context, player string) ([]Player, error)
 }
 
 type servicePlayer struct {
@@ -23,16 +23,23 @@ func (s *servicePlayer) GetRankings(ctx context.Context) ([]Player, error) {
 	return s.repo.GetRankings(ctx)
 }
 
-func (s *servicePlayer) GetPlayerName(ctx context.Context, id string) string {
+func (s *servicePlayer) FilterName(ctx context.Context, player string) ([]Player, error) {
 
-	player := s.repo.GetName(ctx, id)
+	return s.repo.FilterName(ctx, player)
+}
 
-	if player != id {
-		log.Println("user nao exits")
+func (s *servicePlayer) GetPlayerName(ctx context.Context, userId string) string {
+
+	player := s.repo.GetName(ctx, userId)
+
+	if userId == "" || userId == "Visitante" {
+		log.Println("Busca abortada: ID inválido ou reservado")
 		return "Visitante"
 	}
 
-	fmt.Println("Esta vindo", player)
+	if player != userId {
+		return "Visitante"
+	}
 
 	return player
 }

@@ -2,6 +2,7 @@ package player
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"cloud.google.com/go/firestore"
@@ -40,13 +41,38 @@ func (r *PlayerRepository) GetRankings(ctx context.Context) ([]Player, error) {
 	return ranking, nil
 
 }
+func (r *PlayerRepository) FilterName(ctx context.Context, player string) ([]Player, error) {
+	var players []Player
+
+	limiteSuperior := player + "\uf8ff"
+
+	iter := r.client.Collection("Ordem").
+		Where("usuario", ">=", player).
+		Where("usuario", "<=", limiteSuperior).Documents(ctx)
+
+	defer iter.Stop()
+
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("erro ao iterar: %v", err)
+		}
+
+		var p Player
+		if err := doc.DataTo(&p); err != nil {
+			return nil, fmt.Errorf("erro ao converter dados: %v", err)
+		}
+
+		players = append(players, p)
+	}
+
+	return players, nil
+}
 
 func (r *PlayerRepository) GetName(ctx context.Context, userId string) string {
-
-	if userId == "" || userId == "Visitante" {
-		log.Println("Busca abortada: ID inválido ou reservado")
-		return "Visitante"
-	}
 	dsnap, err := r.client.Collection("Ordem").Doc(userId).Get(ctx)
 	if err != nil {
 		log.Printf("Erro no Firestore para o ID %s: %v", userId, err)
@@ -54,6 +80,5 @@ func (r *PlayerRepository) GetName(ctx context.Context, userId string) string {
 	}
 
 	nome := dsnap.Data()["usuario"].(string)
-	log.Printf("Sucesso! Nome recuperado: %s", nome)
 	return nome
 }

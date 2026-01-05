@@ -88,7 +88,7 @@ func (s *ChatServer) RedisSubscriber(ctx context.Context) {
 	sub := Rdb.Subscribe(ctx, Room)
 	ch := sub.Channel()
 
-	log.Println("Ouvindo mensagens do Redis no canal:", Room)
+	log.Println("Ouvindo mensagens do Redis no canal: ", Room)
 
 	for pyload := range ch {
 		var msg Message

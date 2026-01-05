@@ -36,6 +36,7 @@ func main() {
 
 	mux.HandleFunc("/chat", chatServer.ChatHandler)
 	mux.HandleFunc("GET /ranking", playerHand.GetRankings)
+	mux.HandleFunc("GET /filter", playerHand.FilterName)
 	mux.HandleFunc("POST /login", playerHand.Login)
 
 	server := http.Server{
