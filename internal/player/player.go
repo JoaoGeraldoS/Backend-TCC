@@ -7,7 +7,6 @@ import (
 type Player struct {
 	NickName string `firestore:"usuario" json:"nick"`
 	Ponts    int    `firestore:"pontos" json:"points"`
-	Level    int    `firestore:"level" json:"level"`
 }
 
 type ReadPlayers interface {

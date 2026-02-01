@@ -49,5 +49,4 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalln("Erro ao conectar no servidor")
 	}
-
 }

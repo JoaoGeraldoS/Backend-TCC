@@ -62,7 +62,7 @@ func SaveHistory(msg Message) {
 
 	pipe.ZRemRangeByScore(Ctx, HistoryKey, "-inf", fmt.Sprintf("%d", expirationLimit))
 	pipe.ZRemRangeByRank(Ctx, HistoryKey, 0, -51)
-	pipe.Expire(Ctx, HistoryKey, 1*time.Hour)
+	pipe.Expire(Ctx, HistoryKey, 1*time.Minute)
 	pipe.Exec(Ctx)
 }
 
