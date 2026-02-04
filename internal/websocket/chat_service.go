@@ -69,7 +69,7 @@ func (s *ChatServer) ChatHandler(w http.ResponseWriter, r *http.Request) {
 		delete(s.clients, conn)
 		s.mutex.Unlock()
 		conn.Close()
-		log.Printf("Cliente %s desconectado", nomeOficial)
+		log.Printf("Cliente %s desconectado", nomeOficial.NickName)
 	}()
 
 	for {
