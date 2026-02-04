@@ -11,7 +11,7 @@ type Player struct {
 
 type ReadPlayers interface {
 	GetRankings(ctx context.Context) ([]Player, error)
-	GetName(ctx context.Context, userId string) string
+	GetName(ctx context.Context, userId string) *Player
 	FilterName(ctx context.Context, player string) ([]Player, error)
 }
 

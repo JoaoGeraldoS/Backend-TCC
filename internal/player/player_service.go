@@ -7,7 +7,7 @@ import (
 
 type PlayerService interface {
 	GetRankings(ctx context.Context) ([]Player, error)
-	GetPlayerName(ctx context.Context, id string) string
+	GetPlayerName(ctx context.Context, id string) *Player
 	FilterName(ctx context.Context, player string) ([]Player, error)
 	SavePlayer(ctx context.Context, p *Player) error
 }
@@ -21,6 +21,12 @@ func NewPlayerService(repo PlayerInterface) *servicePlayer {
 }
 
 func (s *servicePlayer) SavePlayer(ctx context.Context, p *Player) error {
+	getPoints := s.repo.GetName(ctx, p.NickName)
+
+	if p.Ponts < getPoints.Ponts {
+		return nil
+	}
+
 	return s.repo.SavePlayer(ctx, p)
 }
 
@@ -33,17 +39,17 @@ func (s *servicePlayer) FilterName(ctx context.Context, player string) ([]Player
 	return s.repo.FilterName(ctx, player)
 }
 
-func (s *servicePlayer) GetPlayerName(ctx context.Context, userId string) string {
+func (s *servicePlayer) GetPlayerName(ctx context.Context, userId string) *Player {
 
 	player := s.repo.GetName(ctx, userId)
 
 	if userId == "" || userId == "Visitante" {
 		log.Println("Busca abortada: ID inválido ou reservado")
-		return "Visitante"
+		player.NickName = "Visitante"
 	}
 
-	if player != userId {
-		return "Visitante"
+	if player.NickName != userId {
+		player.NickName = "Visitante"
 	}
 
 	return player

@@ -52,7 +52,7 @@ func (h *PlayerHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	player := h.svc.GetPlayerName(r.Context(), dto.Nick)
 
-	if player == "Visitante" {
+	if player.NickName == "Visitante" {
 		middleware.JsonResponse(w, 404, "Usuario nao existe")
 		return
 	}

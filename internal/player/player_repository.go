@@ -82,16 +82,16 @@ func (r *PlayerRepository) FilterName(ctx context.Context, player string) ([]Pla
 	return players, nil
 }
 
-func (r *PlayerRepository) GetName(ctx context.Context, userId string) string {
+func (r *PlayerRepository) GetName(ctx context.Context, userId string) *Player {
 	dsnap, err := r.client.Collection("Ordem").Doc(userId).Get(ctx)
 	if err != nil {
-		return "Visitante"
+		return nil
 	}
 
 	var p Player
 	dsnap.DataTo(&p)
 	if p.NickName == "" {
-		return "Visitante"
+		return nil
 	}
-	return p.NickName
+	return &p
 }
