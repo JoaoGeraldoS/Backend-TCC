@@ -48,7 +48,7 @@ func (s *ChatServer) ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Cliente %s conectado", nomeOficial)
+	log.Printf("Cliente %s conectado", nomeOficial.NickName)
 
 	history := GetHistory()
 
@@ -56,7 +56,7 @@ func (s *ChatServer) ChatHandler(w http.ResponseWriter, r *http.Request) {
 		if err := conn.WriteJSON(history); err != nil {
 			log.Println("Erro ao enviar histórico inicial:", err)
 		} else {
-			log.Printf("Histórico enviado para %s (%d mensagens)", nomeOficial, len(history))
+			log.Printf("Histórico enviado para %s (%d mensagens)", nomeOficial.NickName, len(history))
 		}
 	}
 
