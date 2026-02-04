@@ -14,3 +14,12 @@ type ReadPlayers interface {
 	GetName(ctx context.Context, userId string) string
 	FilterName(ctx context.Context, player string) ([]Player, error)
 }
+
+type CreatorPlayers interface {
+	SavePlayer(ctx context.Context, p *Player) error
+}
+
+type PlayerInterface interface {
+	ReadPlayers
+	CreatorPlayers
+}

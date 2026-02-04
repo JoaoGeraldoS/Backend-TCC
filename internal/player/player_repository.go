@@ -17,12 +17,19 @@ func NewPlayerRepository(cli *firestore.Client) *PlayerRepository {
 	return &PlayerRepository{client: cli}
 }
 
+func (r *PlayerRepository) SavePlayer(ctx context.Context, p *Player) error {
+	_, err := r.client.Collection("Ordem").Doc(p.NickName).Set(ctx, p)
+	if err != nil {
+		return fmt.Errorf("falha ao sincronizar dados do jogador: %v", err)
+	}
+	return nil
+}
+
 func (r *PlayerRepository) GetRankings(ctx context.Context) ([]Player, error) {
-	client := r.client
+	ranking := []Player{}
 
-	var ranking []Player
-
-	iter := client.Collection("Ordem").OrderBy("pontos", firestore.Desc).Documents(ctx)
+	iter := r.client.Collection("Ordem").OrderBy("pontos", firestore.Desc).Documents(ctx)
+	defer iter.Stop()
 
 	for {
 		doc, err := iter.Next()
@@ -34,7 +41,10 @@ func (r *PlayerRepository) GetRankings(ctx context.Context) ([]Player, error) {
 		}
 
 		var player Player
-		doc.DataTo(&player)
+		if err := doc.DataTo(&player); err != nil {
+			log.Printf("Erro ao converter documento %s: %v", doc.Ref.ID, err)
+			continue
+		}
 		ranking = append(ranking, player)
 	}
 
@@ -75,10 +85,13 @@ func (r *PlayerRepository) FilterName(ctx context.Context, player string) ([]Pla
 func (r *PlayerRepository) GetName(ctx context.Context, userId string) string {
 	dsnap, err := r.client.Collection("Ordem").Doc(userId).Get(ctx)
 	if err != nil {
-		log.Printf("Erro no Firestore para o ID %s: %v", userId, err)
 		return "Visitante"
 	}
 
-	nome := dsnap.Data()["usuario"].(string)
-	return nome
+	var p Player
+	dsnap.DataTo(&p)
+	if p.NickName == "" {
+		return "Visitante"
+	}
+	return p.NickName
 }

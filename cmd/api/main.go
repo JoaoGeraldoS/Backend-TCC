@@ -38,6 +38,7 @@ func main() {
 	mux.HandleFunc("GET /ranking", playerHand.GetRankings)
 	mux.HandleFunc("GET /filter", playerHand.FilterName)
 	mux.HandleFunc("POST /login", playerHand.Login)
+	mux.HandleFunc("POST /dados", playerHand.SavePlayer)
 
 	server := http.Server{
 		Addr:    ":" + port,

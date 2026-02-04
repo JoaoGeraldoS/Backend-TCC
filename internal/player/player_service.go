@@ -9,14 +9,19 @@ type PlayerService interface {
 	GetRankings(ctx context.Context) ([]Player, error)
 	GetPlayerName(ctx context.Context, id string) string
 	FilterName(ctx context.Context, player string) ([]Player, error)
+	SavePlayer(ctx context.Context, p *Player) error
 }
 
 type servicePlayer struct {
-	repo ReadPlayers
+	repo PlayerInterface
 }
 
-func NewPlayerService(repo ReadPlayers) *servicePlayer {
+func NewPlayerService(repo PlayerInterface) *servicePlayer {
 	return &servicePlayer{repo: repo}
+}
+
+func (s *servicePlayer) SavePlayer(ctx context.Context, p *Player) error {
+	return s.repo.SavePlayer(ctx, p)
 }
 
 func (s *servicePlayer) GetRankings(ctx context.Context) ([]Player, error) {

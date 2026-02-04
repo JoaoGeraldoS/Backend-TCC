@@ -18,6 +18,30 @@ func NewPlayerHandler(svc PlayerService) *PlayerHandler {
 	return &PlayerHandler{svc: svc}
 }
 
+func (h *PlayerHandler) SavePlayer(w http.ResponseWriter, r *http.Request) {
+	var dtoRequest PointsRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&dtoRequest); err != nil {
+		middleware.JsonResponse(w, 400, err)
+		return
+	}
+
+	newPlayer := &Player{
+		NickName: dtoRequest.User,
+		Ponts:    dtoRequest.Points,
+	}
+
+	if err := h.svc.SavePlayer(r.Context(), newPlayer); err != nil {
+		middleware.JsonResponse(w, 500, err)
+		return
+	}
+
+	var status StatusResponse
+	status.Status = "Dados enviados"
+
+	middleware.JsonResponse(w, 201, status)
+}
+
 func (h *PlayerHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var dto PlayerRequet
 
