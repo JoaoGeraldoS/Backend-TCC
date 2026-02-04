@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -18,7 +19,7 @@ var (
 
 const (
 	Room       = "room:global"
-	HistoryKey = "history:global"
+	HistoryKey = "history:global:v4"
 )
 
 func Init() {
@@ -42,34 +43,51 @@ func Init() {
 	}
 }
 
-func Publish(msg Message) {
+func Publish(msg map[string]interface{}) {
 
 	data, _ := json.Marshal(msg)
 	Rdb.Publish(Ctx, Room, data)
 }
 
-func SaveHistory(msg Message) {
-	data, _ := json.Marshal(msg)
+func SaveHistory(msg Message) string {
+	uniqueID := uuid.New().String()
+
+	msgData := map[string]interface{}{
+		"user":    msg.User,
+		"message": msg.Message,
+		"time":    msg.Time,
+		"id":      uniqueID,
+	}
+
+	data, _ := json.Marshal(msgData)
+
 	now := time.Now().Unix()
-	expirationLimit := 60
 
-	pipe := Rdb.TxPipeline()
-
-	pipe.ZAdd(Ctx, HistoryKey, redis.Z{
+	err := Rdb.ZAdd(Ctx, HistoryKey, redis.Z{
 		Score:  float64(now),
 		Member: data,
-	})
+	}).Err()
 
-	pipe.ZRemRangeByScore(Ctx, HistoryKey, "-inf", fmt.Sprintf("%d", expirationLimit))
-	pipe.ZRemRangeByRank(Ctx, HistoryKey, 0, -51)
-	pipe.Expire(Ctx, HistoryKey, 1*time.Minute)
-	pipe.Exec(Ctx)
+	if err != nil {
+		log.Println("Erro ao salvar no Redis:", err)
+	}
+
+	limiteTempo := now - 120
+	Rdb.ZRemRangeByScore(Ctx, HistoryKey, "-inf", fmt.Sprintf("%d", limiteTempo))
+
+	log.Printf("Mensagem salva. Limpeza de mensagens anteriores a: %d", limiteTempo)
+
+	return uniqueID
 }
 
 func GetHistory() []Message {
 	var messages []Message
 
-	items, err := Rdb.LRange(Ctx, HistoryKey, 0, -1).Result()
+	now := time.Now().Unix()
+
+	Rdb.ZRemRangeByScore(Ctx, HistoryKey, "-inf", fmt.Sprintf("%d", now-120))
+
+	items, err := Rdb.ZRange(Ctx, HistoryKey, 0, -1).Result()
 	if err != nil {
 		return messages
 	}

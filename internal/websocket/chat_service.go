@@ -48,16 +48,21 @@ func (s *ChatServer) ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.mutex.Lock()
-	s.clients[conn] = true
-	s.mutex.Unlock()
-
 	log.Printf("Cliente %s conectado", nomeOficial)
 
 	history := GetHistory()
-	for _, msg := range history {
-		conn.WriteJSON(msg)
+
+	if len(history) > 0 {
+		if err := conn.WriteJSON(history); err != nil {
+			log.Println("Erro ao enviar histórico inicial:", err)
+		} else {
+			log.Printf("Histórico enviado para %s (%d mensagens)", nomeOficial, len(history))
+		}
 	}
+
+	s.mutex.Lock()
+	s.clients[conn] = true
+	s.mutex.Unlock()
 
 	defer func() {
 		s.mutex.Lock()
@@ -69,6 +74,7 @@ func (s *ChatServer) ChatHandler(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		var msg Message
+
 		if err := conn.ReadJSON(&msg); err != nil {
 			log.Println("Erro ao ler mensagem: ", err)
 			break
@@ -79,8 +85,16 @@ func (s *ChatServer) ChatHandler(w http.ResponseWriter, r *http.Request) {
 		msg.User = nomeOficial
 		msg.Time = time.Now().In(loc).Format("15:04")
 
-		SaveHistory(msg)
-		Publish(msg)
+		id := SaveHistory(msg)
+
+		payload := map[string]interface{}{
+			"user":    msg.User,
+			"message": msg.Message,
+			"time":    msg.Time,
+			"id":      id,
+		}
+
+		Publish(payload)
 	}
 }
 
