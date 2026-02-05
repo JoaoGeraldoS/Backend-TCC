@@ -47,16 +47,24 @@ func (s *servicePlayer) FilterName(ctx context.Context, player string) ([]Player
 
 func (s *servicePlayer) GetPlayerName(ctx context.Context, userId string) *Player {
 
-	player := s.repo.GetName(ctx, userId)
+	if s == nil || s.repo == nil {
+        log.Println("Erro: Serviço de player ou repositório não inicializado")
+        return &Player{NickName: "Visitante"}
+    }
 
-	if userId == "" || userId == "Visitante" {
-		log.Println("Busca abortada: ID inválido ou reservado")
-		player.NickName = "Visitante"
-	}
+    if userId == "" || userId == "Visitante" {
+        return &Player{NickName: "Visitante"}
+    }
 
-	if player.NickName != userId {
-		player.NickName = "Visitante"
-	}
+    player := s.repo.GetName(ctx, userId)
 
-	return player
+    if player == nil {
+        return &Player{NickName: "Visitante"}
+    }
+
+    if player.NickName != userId {
+        player.NickName = "Visitante"
+    }
+
+    return player
 }
