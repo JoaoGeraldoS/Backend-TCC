@@ -21,10 +21,15 @@ func NewPlayerService(repo PlayerInterface) *servicePlayer {
 }
 
 func (s *servicePlayer) SavePlayer(ctx context.Context, p *Player) error {
-	getPoints := s.repo.GetName(ctx, p.NickName)
+	if p == nil {
+		return fmt.Errorf("player data is nil")
+	}
 
-	if p.Ponts < getPoints.Ponts {
-		return nil
+	getPoints := s.repo.GetName(ctx, p.NickName)
+	if getPoints != nil {
+		if p.Ponts < getPoints.Ponts {
+			return nil
+		}
 	}
 
 	return s.repo.SavePlayer(ctx, p)
